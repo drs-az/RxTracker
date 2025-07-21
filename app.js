@@ -213,13 +213,16 @@ function loadMedHistory(id) {
   });
 }
 
-function drawLineChart(canvas, labels, datasets) {
+function drawLineChart(canvas, labels, datasets, opts = {}) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const padding = 30;
+
+  const padding = 40;
   const width = canvas.width - padding * 2;
   const height = canvas.height - padding * 2;
-  const all = datasets.flatMap(d => d.data);
+
+  const all = datasets.flatMap(d => d.data).map(Number);
+  if (!all.length) return;
   const minY = Math.min(...all);
   const maxY = Math.max(...all);
 
@@ -230,25 +233,56 @@ function drawLineChart(canvas, labels, datasets) {
   ctx.lineTo(padding + width, padding + height);
   ctx.stroke();
 
-  const stepX = labels.length > 1 ? width / (labels.length - 1) : 0;
+  const stepX = labels.length > 1 ? width / (labels.length - 1) : width;
   ctx.font = '10px sans-serif';
   ctx.textAlign = 'center';
   labels.forEach((lab, i) => {
-    const x = padding + i * stepX;
+    const x = padding + (labels.length > 1 ? i * stepX : width / 2);
     ctx.fillText(lab, x, padding + height + 12);
   });
 
-  const scaleY = maxY === minY ? 0 : height / (maxY - minY);
+  const ticks = 5;
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= ticks; i++) {
+    const val = minY + (maxY - minY) * (i / ticks);
+    const y = padding + height - (maxY - minY === 0 ? 0 : (val - minY) / (maxY - minY) * height);
+    ctx.fillText(Math.round(val), padding - 5, y + 3);
+    ctx.beginPath();
+    ctx.moveTo(padding - 3, y);
+    ctx.lineTo(padding, y);
+    ctx.stroke();
+  }
+
   datasets.forEach(ds => {
     ctx.strokeStyle = ds.color;
+    ctx.fillStyle = ds.color;
     ctx.beginPath();
     ds.data.forEach((val, i) => {
-      const x = padding + i * stepX;
-      const y = padding + height - (val - minY) * scaleY;
+      const x = padding + (labels.length > 1 ? i * stepX : width / 2);
+      const y = padding + height - (maxY - minY === 0 ? 0 : (val - minY) / (maxY - minY) * height);
       if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
     ctx.stroke();
+    ds.data.forEach((val, i) => {
+      const x = padding + (labels.length > 1 ? i * stepX : width / 2);
+      const y = padding + height - (maxY - minY === 0 ? 0 : (val - minY) / (maxY - minY) * height);
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
   });
+
+  ctx.textAlign = 'center';
+  if (opts.xLabel) {
+    ctx.fillText(opts.xLabel, padding + width / 2, canvas.height - 5);
+  }
+  if (opts.yLabel) {
+    ctx.save();
+    ctx.translate(12, padding + height / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText(opts.yLabel, 0, 0);
+    ctx.restore();
+  }
 }
 
 function drawVitalsCharts() {
@@ -260,10 +294,16 @@ function drawVitalsCharts() {
   drawLineChart(bpCanvas, dates, [
     { data: systolic, color: 'red' },
     { data: diastolic, color: 'blue' }
-  ]);
+  ], {
+    xLabel: 'Date',
+    yLabel: 'mmHg'
+  });
   drawLineChart(hrCanvas, dates, [
     { data: hr, color: 'green' }
-  ]);
+  ], {
+    xLabel: 'Date',
+    yLabel: 'bpm'
+  });
 }
 
 downloadBpBtn.addEventListener('click', () => {
