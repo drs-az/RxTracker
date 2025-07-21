@@ -76,6 +76,10 @@ ul li {
   align-items: center;
 }
 
+ul li button {
+  margin-left: 0.5rem;
+}
+
 ul li input[type="checkbox"] {
   margin-right: 0.5rem;
 }
@@ -83,6 +87,10 @@ ul li input[type="checkbox"] {
 #vitals-display p {
   margin: 0.5rem 0;
   font-weight: bold;
+}
+
+#vitals-display button {
+  margin-top: 0.5rem;
 }
 
 #bottom-nav {

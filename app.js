@@ -14,6 +14,9 @@ const hrCanvas = document.getElementById('hr-chart');
 const downloadBpBtn = document.getElementById('download-bp');
 const downloadHrBtn = document.getElementById('download-hr');
 const navButtons = document.querySelectorAll('#bottom-nav button');
+const medSubmitBtn = medForm.querySelector('button[type="submit"]');
+const editVitalsBtn = document.getElementById('edit-vitals');
+let editingMedId = null;
 
 // LocalStorage Helpers
 function getMeds() { return JSON.parse(localStorage.getItem('meds') || '[]'); }
@@ -38,10 +41,23 @@ medForm.addEventListener('submit', e => {
   const dose = document.getElementById('med-dose').value;
   const times = Array.from(timeInputsDiv.querySelectorAll('input')).map(i => i.value);
   const meds = getMeds();
-  meds.push({ id: Date.now(), name, dose, times });
+
+  if (editingMedId) {
+    const med = meds.find(m => m.id === editingMedId);
+    if (med) {
+      med.name = name;
+      med.dose = dose;
+      med.times = times;
+    }
+  } else {
+    meds.push({ id: Date.now(), name, dose, times });
+  }
+
   saveMeds(meds);
   renderMeds();
   medForm.reset();
+  medSubmitBtn.textContent = 'Save Medication';
+  editingMedId = null;
   timeInputsDiv.innerHTML = '';
 });
 
@@ -50,9 +66,32 @@ function renderMeds() {
   medList.innerHTML = '';
   getMeds().forEach(m => {
     const li = document.createElement('li');
-    li.textContent = `${m.name} - ${m.dose} at ${m.times.join(', ')}`;
+    const span = document.createElement('span');
+    span.textContent = `${m.name} - ${m.dose} at ${m.times.join(', ')}`;
+    li.appendChild(span);
+    const btn = document.createElement('button');
+    btn.textContent = 'Edit';
+    btn.addEventListener('click', () => startEditMed(m.id));
+    li.appendChild(btn);
     medList.appendChild(li);
   });
+}
+
+function startEditMed(id) {
+  const med = getMeds().find(m => m.id === id);
+  if (!med) return;
+  editingMedId = id;
+  document.getElementById('med-name').value = med.name;
+  document.getElementById('med-dose').value = med.dose;
+  timeInputsDiv.innerHTML = '';
+  med.times.forEach(t => {
+    const input = document.createElement('input');
+    input.type = 'time';
+    input.required = true;
+    input.value = t;
+    timeInputsDiv.appendChild(input);
+  });
+  medSubmitBtn.textContent = 'Update Medication';
 }
 
 // Render today's medication log
@@ -103,13 +142,28 @@ vitalsForm.addEventListener('submit', e => {
   vitalsForm.reset();
 });
 
+editVitalsBtn.addEventListener('click', () => {
+  const logs = getVitalsLogs();
+  const today = new Date().toISOString().split('T')[0];
+  const v = logs[today];
+  if (!v) return;
+  document.getElementById('systolic').value = v.systolic;
+  document.getElementById('diastolic').value = v.diastolic;
+  document.getElementById('heart-rate').value = v.heartRate;
+});
+
 function renderVitals() {
   const logs = getVitalsLogs();
   const today = new Date().toISOString().split('T')[0];
   const v = logs[today];
-  vitalsDisplay.innerHTML = v
-    ? `<p>BP: ${v.systolic}/${v.diastolic} mmHg</p><p>HR: ${v.heartRate} bpm</p>`
-    : '';
+  if (v) {
+    vitalsDisplay.innerHTML =
+      `<p>BP: ${v.systolic}/${v.diastolic} mmHg</p><p>HR: ${v.heartRate} bpm</p>`;
+    editVitalsBtn.style.display = 'block';
+  } else {
+    vitalsDisplay.innerHTML = '';
+    editVitalsBtn.style.display = 'none';
+  }
 }
 
 function showSection(id) {
