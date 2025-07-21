@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medication & Vitals Logger</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="app.js"></script>
+</head>
+<body>
+  <h1>Medication & Vitals Logger</h1>
+
+  <section id="setup">
+    <h2>Setup Medications & Vitamins</h2>
+    <form id="med-form">
+      <input type="text" id="med-name" placeholder="Name" required />
+      <input type="text" id="med-dose" placeholder="Dose" required />
+      <input type="number" id="med-frequency" placeholder="Times per day" min="1" required />
+      <div id="time-inputs"></div>
+      <button type="button" id="add-time">Add Time</button>
+      <button type="submit">Save Medication</button>
+    </form>
+    <ul id="med-list"></ul>
+  </section>
+
+  <section id="today-log">
+    <h2>Today's Log: <span id="today-date"></span></h2>
+    <ul id="log-list"></ul>
+
+    <h3>Record Vitals</h3>
+    <form id="vitals-form">
+      <input type="number" id="systolic" placeholder="Systolic" required />
+      <input type="number" id="diastolic" placeholder="Diastolic" required />
+      <input type="number" id="heart-rate" placeholder="Heart Rate" required />
+      <button type="submit">Save Vitals</button>
+    </form>
+    <div id="vitals-display"></div>
+  </section>
+</body>
+</html>
