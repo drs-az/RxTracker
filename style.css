@@ -2,6 +2,7 @@ body {
   font-family: Arial, sans-serif;
   margin: 0;
   padding: 1rem;
+  padding-bottom: 70px;
   background-color: #f9f9f9;
   color: #333;
 }
@@ -9,6 +10,17 @@ body {
 h1, h2, h3 {
   color: #007acc;
   margin-top: 0;
+}
+
+#main-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#logo {
+  width: 40px;
+  height: 40px;
 }
 
 section {
@@ -64,4 +76,38 @@ ul li input[type="checkbox"] {
 #vitals-display p {
   margin: 0.5rem 0;
   font-weight: bold;
+}
+
+#bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  border-top: 1px solid #ccc;
+  background: #fff;
+}
+
+#bottom-nav button {
+  flex: 1;
+  padding: 0.75rem 0;
+  background: none;
+  border: none;
+  font-size: 1rem;
+}
+
+#bottom-nav button:focus {
+  background: #e6f2ff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 0.25rem;
+  text-align: center;
 }
