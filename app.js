@@ -7,6 +7,13 @@ const todayDateSpan = document.getElementById('today-date');
 const logList = document.getElementById('log-list');
 const vitalsForm = document.getElementById('vitals-form');
 const vitalsDisplay = document.getElementById('vitals-display');
+const historySelect = document.getElementById('history-med-select');
+const historyTableBody = document.querySelector('#history-table tbody');
+const bpCanvas = document.getElementById('bp-chart');
+const hrCanvas = document.getElementById('hr-chart');
+const downloadBpBtn = document.getElementById('download-bp');
+const downloadHrBtn = document.getElementById('download-hr');
+const navButtons = document.querySelectorAll('#bottom-nav button');
 
 // LocalStorage Helpers
 function getMeds() { return JSON.parse(localStorage.getItem('meds') || '[]'); }
@@ -105,11 +112,128 @@ function renderVitals() {
     : '';
 }
 
+function showSection(id) {
+  document.querySelectorAll('section').forEach(sec => {
+    sec.style.display = sec.id === id ? 'block' : 'none';
+  });
+  if (id === 'tracker') {
+    renderTracker();
+  } else if (id === 'today-log') {
+    renderLog();
+    renderVitals();
+  }
+}
+
+navButtons.forEach(btn => {
+  btn.addEventListener('click', () => showSection(btn.dataset.target));
+});
+
+function renderTracker() {
+  const meds = getMeds();
+  historySelect.innerHTML = '';
+  meds.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.id;
+    opt.textContent = m.name;
+    historySelect.appendChild(opt);
+  });
+  if (meds.length) loadMedHistory(meds[0].id);
+  drawVitalsCharts();
+}
+
+historySelect.addEventListener('change', () => loadMedHistory(historySelect.value));
+
+function loadMedHistory(id) {
+  const med = getMeds().find(m => m.id == id);
+  if (!med) return;
+  const logs = getMedLogs();
+  historyTableBody.innerHTML = '';
+  const dates = Object.keys(logs).sort();
+  dates.forEach(date => {
+    med.times.forEach(time => {
+      const entry = (logs[date] || []).find(l => l.medId == med.id && l.time === time);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${date}</td><td>${time}</td><td>${entry && entry.taken ? 'Yes' : 'No'}</td>`;
+      historyTableBody.appendChild(tr);
+    });
+  });
+}
+
+function drawLineChart(canvas, labels, datasets) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const padding = 30;
+  const width = canvas.width - padding * 2;
+  const height = canvas.height - padding * 2;
+  const all = datasets.flatMap(d => d.data);
+  const minY = Math.min(...all);
+  const maxY = Math.max(...all);
+
+  ctx.strokeStyle = '#000';
+  ctx.beginPath();
+  ctx.moveTo(padding, padding);
+  ctx.lineTo(padding, padding + height);
+  ctx.lineTo(padding + width, padding + height);
+  ctx.stroke();
+
+  const stepX = labels.length > 1 ? width / (labels.length - 1) : 0;
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'center';
+  labels.forEach((lab, i) => {
+    const x = padding + i * stepX;
+    ctx.fillText(lab, x, padding + height + 12);
+  });
+
+  const scaleY = maxY === minY ? 0 : height / (maxY - minY);
+  datasets.forEach(ds => {
+    ctx.strokeStyle = ds.color;
+    ctx.beginPath();
+    ds.data.forEach((val, i) => {
+      const x = padding + i * stepX;
+      const y = padding + height - (val - minY) * scaleY;
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+  });
+}
+
+function drawVitalsCharts() {
+  const logs = getVitalsLogs();
+  const dates = Object.keys(logs).sort();
+  const systolic = dates.map(d => Number(logs[d].systolic));
+  const diastolic = dates.map(d => Number(logs[d].diastolic));
+  const hr = dates.map(d => Number(logs[d].heartRate));
+  drawLineChart(bpCanvas, dates, [
+    { data: systolic, color: 'red' },
+    { data: diastolic, color: 'blue' }
+  ]);
+  drawLineChart(hrCanvas, dates, [
+    { data: hr, color: 'green' }
+  ]);
+}
+
+downloadBpBtn.addEventListener('click', () => {
+  const url = bpCanvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'blood_pressure.png';
+  a.click();
+});
+
+downloadHrBtn.addEventListener('click', () => {
+  const url = hrCanvas.toDataURL('image/png');
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'heart_rate.png';
+  a.click();
+});
+
 // Initialize app
 function init() {
   renderMeds();
   renderLog();
   renderVitals();
+  showSection('today-log');
 }
 
 window.addEventListener('load', () => {

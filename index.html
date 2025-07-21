@@ -9,7 +9,10 @@
   <script defer src="app.js"></script>
 </head>
 <body>
-  <h1>Medication & Vitals Logger</h1>
+  <header id="main-header">
+    <img id="logo" src="icon-512.png" alt="Logo" />
+    <h1>Medication & Vitals Logger</h1>
+  </header>
 
   <section id="setup">
     <h2>Setup Medications & Vitamins</h2>
@@ -37,5 +40,31 @@
     </form>
     <div id="vitals-display"></div>
   </section>
+
+  <section id="tracker" style="display:none;">
+    <h2>Tracker</h2>
+    <label for="history-med-select">Medication/Vitamin:</label>
+    <select id="history-med-select"></select>
+    <table id="history-table">
+      <thead>
+        <tr><th>Date</th><th>Time</th><th>Taken</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>Blood Pressure</h3>
+    <canvas id="bp-chart" width="300" height="150"></canvas>
+    <button id="download-bp">Download PNG</button>
+
+    <h3>Heart Rate</h3>
+    <canvas id="hr-chart" width="300" height="150"></canvas>
+    <button id="download-hr">Download PNG</button>
+  </section>
+
+  <nav id="bottom-nav">
+    <button data-target="today-log">Today's Log</button>
+    <button data-target="setup">Setup Rx</button>
+    <button data-target="tracker">Tracker</button>
+  </nav>
 </body>
 </html>
