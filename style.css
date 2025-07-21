@@ -14,8 +14,15 @@ margin-top: 0;
 
 #main-header {
   display: flex;
-  align-items: center;
+  align-items: flex-end; /* Align items to the bottom */
   gap: 0.5rem;
+}
+
+#main-header h1, 
+#main-header h2, 
+#main-header h3 {
+  color: #007acc;
+  margin: 0;
 }
 
 #logo {
