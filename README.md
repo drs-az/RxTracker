@@ -38,11 +38,10 @@ native application.
 ### Backup folder
 
 In the **Setup Rx** tab you can press **Choose Backup Folder** to select a
-directory on your device. After you pick it, the folder name appears next to the
-button so you know it's set. A JSON file named `rxtracker-data.json` will be kept
-in that folder with all medications and logs. This folder is treated as the main
-storage location. If the folder becomes unavailable or the File System Access
-API isn't supported, the app will fall back to browser storage and alert you.
+directory on your device. A JSON file named `rxtracker-data.json` will be kept in
+that folder with all medications and logs. If the folder becomes unavailable or
+the File System Access API isn't supported, the app will switch to browser
+storage and show an alert.
 
 ## License
 
