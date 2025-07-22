@@ -143,3 +143,12 @@ section.active {
   margin-left: 0.5rem;
   font-style: italic;
 }
+
+#fs-info {
+  margin-top: 1rem;
+}
+
+#fs-info p {
+  margin: 0 0 0.5rem 0;
+}
+=======
