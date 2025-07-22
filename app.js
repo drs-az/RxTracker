@@ -40,6 +40,7 @@ function saveVitalsLogs(logs) {
 // --- File System Access API Backup ---
 let folderHandle = null;
 let fallbackAlertShown = false;
+const FOLDER_NAME_KEY = 'backupFolderName';
 
 function openDB() {
   return new Promise((resolve, reject) => {
@@ -54,6 +55,7 @@ function openDB() {
 
 async function saveDirHandle(handle) {
   const db = await openDB();
+  localStorage.setItem(FOLDER_NAME_KEY, handle.name);
   return new Promise((resolve, reject) => {
     const tx = db.transaction('handles', 'readwrite');
     tx.objectStore('handles').put(handle, 'dir');
@@ -82,6 +84,10 @@ async function clearDirHandle() {
   });
 }
 
+function clearStoredDirName() {
+  localStorage.removeItem(FOLDER_NAME_KEY);
+}
+
 async function backupData() {
   if (!folderHandle) return;
   try {
@@ -102,6 +108,7 @@ async function backupData() {
     folderHandle = null;
     folderDisplay.textContent = '';
     clearDirHandle();
+    clearStoredDirName();
   }
 }
 
@@ -122,6 +129,7 @@ async function restoreFromFile() {
     folderHandle = null;
     folderDisplay.textContent = '';
     clearDirHandle();
+    clearStoredDirName();
   }
 }
 
@@ -457,6 +465,10 @@ downloadHrBtn.addEventListener('click', () => {
 
 // Initialize app
 async function init() {
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
+  }
+  folderDisplay.textContent = localStorage.getItem(FOLDER_NAME_KEY) || '';
   const storedHandle = await loadDirHandle();
   if (storedHandle && !window.showDirectoryPicker) {
     alert('File System Access API not available. Using local storage instead.');
@@ -474,6 +486,8 @@ async function init() {
       alert('Could not access the chosen folder. Using local storage instead.');
       folderHandle = null;
       folderDisplay.textContent = '';
+      clearStoredDirName();
+      clearDirHandle();
     }
   }
   renderMeds();
