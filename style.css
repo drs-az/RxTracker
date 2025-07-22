@@ -127,6 +127,14 @@ th, td {
   text-align: center;
 }
 
+section {
+  display: none;
+}
+
+section.active {
+  display: block;
+}
+
 #fs-setup {
   margin-top: 1rem;
 }
