@@ -26,6 +26,11 @@ function saveMedLogs(logs) { localStorage.setItem('medLogs', JSON.stringify(logs
 function getVitalsLogs() { return JSON.parse(localStorage.getItem('vitalsLogs') || '{}'); }
 function saveVitalsLogs(logs) { localStorage.setItem('vitalsLogs', JSON.stringify(logs)); }
 
+// Utility to return today's date in the user's local timezone
+function getTodayString() {
+  return new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD
+}
+
 // Add time input field
 addTimeBtn.addEventListener('click', () => {
   const input = document.createElement('input');
@@ -96,7 +101,7 @@ function startEditMed(id) {
 
 // Render today's medication log
 function renderLog() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   todayDateSpan.textContent = today;
   const logs = getMedLogs();
   const todayLogs = logs[today] || [];
@@ -135,7 +140,7 @@ vitalsForm.addEventListener('submit', e => {
   const diastolic = document.getElementById('diastolic').value;
   const hr = document.getElementById('heart-rate').value;
   const logs = getVitalsLogs();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   logs[today] = { systolic, diastolic, heartRate: hr };
   saveVitalsLogs(logs);
   renderVitals();
@@ -144,7 +149,7 @@ vitalsForm.addEventListener('submit', e => {
 
 editVitalsBtn.addEventListener('click', () => {
   const logs = getVitalsLogs();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   const v = logs[today];
   if (!v) return;
   document.getElementById('systolic').value = v.systolic;
@@ -154,7 +159,7 @@ editVitalsBtn.addEventListener('click', () => {
 
 function renderVitals() {
   const logs = getVitalsLogs();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getTodayString();
   const v = logs[today];
   if (v) {
     vitalsDisplay.innerHTML =
