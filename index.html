@@ -25,9 +25,13 @@
       <button type="submit">Save Medication</button>
     </form>
     <ul id="med-list"></ul>
+    <div id="fs-setup">
+      <button type="button" id="choose-folder">Choose Backup Folder</button>
+      <span id="folder-display"></span>
+    </div>
   </section>
 
-  <section id="today-log">
+  <section id="today-log" class="active">
     <h2>Today's Log: <span id="today-date"></span></h2>
     <ul id="log-list"></ul>
 
@@ -42,7 +46,7 @@
     <button type="button" id="edit-vitals">Edit Vitals</button>
   </section>
 
-  <section id="tracker" style="display:none;">
+  <section id="tracker">
     <h2>Tracker</h2>
     <label for="history-med-select">Medication/Vitamin:</label>
     <select id="history-med-select"></select>
