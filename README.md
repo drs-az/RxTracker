@@ -17,6 +17,9 @@ desktop devices.
   blood pressure and heart rate.  Charts can be downloaded as PNG images.
 - **Offline capable** – a service worker caches the HTML, CSS, JS and icons so
   the app continues to run without a network connection.
+- **On-device storage** – choose a folder and the app will keep a JSON file with
+  your medications and logs. This folder is the primary location. If it can't be
+  used later, the app falls back to browser storage and alerts you.
 
 ## Running locally
 
@@ -31,6 +34,17 @@ Then navigate to `http://localhost:8000`.
 
 On mobile devices you can choose "Add to Home Screen" to install the app like a
 native application.
+
+### Backup folder
+
+In the **Setup Rx** tab you can press **Choose Backup Folder** to select a
+ directory on your device. After you pick it, the folder name appears next to the
+ button so you know it's set. A JSON file named `rxtracker-data.json` will be kept
+ in that folder with all medications and logs. This folder is treated as the main
+ storage location. If the folder becomes unavailable or the File System Access
+API isn't supported, the app will fall back to browser storage and alert you.
+The folder choice is stored on the device so it remains set even after closing
+and reopening the app.
 
 ## License
 

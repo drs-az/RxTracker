@@ -16,15 +16,144 @@ const downloadHrBtn = document.getElementById('download-hr');
 const navButtons = document.querySelectorAll('#bottom-nav button');
 const medSubmitBtn = medForm.querySelector('button[type="submit"]');
 const editVitalsBtn = document.getElementById('edit-vitals');
+const chooseFolderBtn = document.getElementById('choose-folder');
+const folderDisplay = document.getElementById('folder-display');
 let editingMedId = null;
 
 // LocalStorage Helpers
 function getMeds() { return JSON.parse(localStorage.getItem('meds') || '[]'); }
-function saveMeds(meds) { localStorage.setItem('meds', JSON.stringify(meds)); }
+function saveMeds(meds) {
+  localStorage.setItem('meds', JSON.stringify(meds));
+  backupData();
+}
 function getMedLogs() { return JSON.parse(localStorage.getItem('medLogs') || '{}'); }
-function saveMedLogs(logs) { localStorage.setItem('medLogs', JSON.stringify(logs)); }
+function saveMedLogs(logs) {
+  localStorage.setItem('medLogs', JSON.stringify(logs));
+  backupData();
+}
 function getVitalsLogs() { return JSON.parse(localStorage.getItem('vitalsLogs') || '{}'); }
-function saveVitalsLogs(logs) { localStorage.setItem('vitalsLogs', JSON.stringify(logs)); }
+function saveVitalsLogs(logs) {
+  localStorage.setItem('vitalsLogs', JSON.stringify(logs));
+  backupData();
+}
+
+// --- File System Access API Backup ---
+let folderHandle = null;
+let fallbackAlertShown = false;
+const FOLDER_NAME_KEY = 'backupFolderName';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('rx-tracker', 1);
+    request.onupgradeneeded = e => {
+      e.target.result.createObjectStore('handles');
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveDirHandle(handle) {
+  const db = await openDB();
+  localStorage.setItem(FOLDER_NAME_KEY, handle.name);
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'dir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function loadDirHandle() {
+  const db = await openDB();
+  return new Promise(resolve => {
+    const tx = db.transaction('handles', 'readonly');
+    const req = tx.objectStore('handles').get('dir');
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+  });
+}
+
+async function clearDirHandle() {
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').delete('dir');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+function clearStoredDirName() {
+  localStorage.removeItem(FOLDER_NAME_KEY);
+}
+
+async function backupData() {
+  if (!folderHandle) return;
+  try {
+    const fileHandle = await folderHandle.getFileHandle('rxtracker-data.json', { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify({
+      meds: getMeds(),
+      medLogs: getMedLogs(),
+      vitalsLogs: getVitalsLogs()
+    }, null, 2));
+    await writable.close();
+  } catch (err) {
+    console.error('Failed to backup data', err);
+    if (!fallbackAlertShown) {
+      alert('Lost access to the chosen folder. Using local storage instead.');
+      fallbackAlertShown = true;
+    }
+    folderHandle = null;
+    folderDisplay.textContent = '';
+    clearDirHandle();
+    clearStoredDirName();
+  }
+}
+
+async function restoreFromFile() {
+  if (!folderHandle) return;
+  try {
+    const fileHandle = await folderHandle.getFileHandle('rxtracker-data.json');
+    const file = await fileHandle.getFile();
+    const data = JSON.parse(await file.text());
+    if (data.meds) saveMeds(data.meds);
+    if (data.medLogs) saveMedLogs(data.medLogs);
+    if (data.vitalsLogs) saveVitalsLogs(data.vitalsLogs);
+  } catch (err) {
+    if (!fallbackAlertShown) {
+      alert('Could not read data from the chosen folder. Using local storage instead.');
+      fallbackAlertShown = true;
+    }
+    folderHandle = null;
+    folderDisplay.textContent = '';
+    clearDirHandle();
+    clearStoredDirName();
+  }
+}
+
+async function chooseFolder() {
+  if (!window.showDirectoryPicker) {
+    alert('File System Access API not supported. Using local storage only.');
+    return;
+  }
+  try {
+    const handle = await window.showDirectoryPicker();
+    const perm = await handle.requestPermission({ mode: 'readwrite' });
+    if (perm === 'granted') {
+      folderHandle = handle;
+      folderDisplay.textContent = handle.name;
+      await saveDirHandle(handle);
+      await backupData();
+      fallbackAlertShown = false;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+chooseFolderBtn.addEventListener('click', chooseFolder);
 
 // Utility to return today's date in the user's local timezone
 function getTodayString() {
@@ -171,9 +300,15 @@ function renderVitals() {
   }
 }
 
+const ACTIVE_KEY = 'activeSection';
+
 function showSection(id) {
   document.querySelectorAll('section').forEach(sec => {
-    sec.style.display = sec.id === id ? 'block' : 'none';
+    if (sec.id === id) {
+      sec.classList.add('active');
+    } else {
+      sec.classList.remove('active');
+    }
   });
   if (id === 'tracker') {
     renderTracker();
@@ -181,6 +316,7 @@ function showSection(id) {
     renderLog();
     renderVitals();
   }
+  localStorage.setItem(ACTIVE_KEY, id);
 }
 
 navButtons.forEach(btn => {
@@ -328,11 +464,37 @@ downloadHrBtn.addEventListener('click', () => {
 });
 
 // Initialize app
-function init() {
+async function init() {
+  if (navigator.storage && navigator.storage.persist) {
+    navigator.storage.persist();
+  }
+  folderDisplay.textContent = localStorage.getItem(FOLDER_NAME_KEY) || '';
+  const storedHandle = await loadDirHandle();
+  if (storedHandle && !window.showDirectoryPicker) {
+    alert('File System Access API not available. Using local storage instead.');
+  }
+  if (storedHandle && window.showDirectoryPicker) {
+    folderHandle = storedHandle;
+    let perm = await folderHandle.queryPermission({ mode: 'readwrite' });
+    if (perm === 'prompt') {
+      perm = await folderHandle.requestPermission({ mode: 'readwrite' });
+    }
+    if (perm === 'granted') {
+      folderDisplay.textContent = folderHandle.name;
+      await restoreFromFile();
+    } else {
+      alert('Could not access the chosen folder. Using local storage instead.');
+      folderHandle = null;
+      folderDisplay.textContent = '';
+      clearStoredDirName();
+      clearDirHandle();
+    }
+  }
   renderMeds();
   renderLog();
   renderVitals();
-  showSection('today-log');
+  const start = localStorage.getItem(ACTIVE_KEY) || 'today-log';
+  showSection(start);
 }
 
 window.addEventListener('load', () => {
