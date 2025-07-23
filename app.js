@@ -292,15 +292,9 @@ function renderVitals() {
   }
 }
 
-const ACTIVE_KEY = 'activeSection';
-
 function showSection(id) {
   document.querySelectorAll('section').forEach(sec => {
-    if (sec.id === id) {
-      sec.classList.add('active');
-    } else {
-      sec.classList.remove('active');
-    }
+    sec.style.display = sec.id === id ? 'block' : 'none';
   });
   if (id === 'tracker') {
     renderTracker();
@@ -308,7 +302,6 @@ function showSection(id) {
     renderLog();
     renderVitals();
   }
-  localStorage.setItem(ACTIVE_KEY, id);
 }
 
 navButtons.forEach(btn => {
@@ -479,8 +472,7 @@ async function init() {
   renderMeds();
   renderLog();
   renderVitals();
-  const start = localStorage.getItem(ACTIVE_KEY) || 'today-log';
-  showSection(start);
+  showSection('today-log');
 }
 
 window.addEventListener('load', () => {
