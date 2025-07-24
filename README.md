@@ -17,6 +17,8 @@ desktop devices.
   blood pressure and heart rate.  Charts can be downloaded as PNG images.
 - **Offline capable** – a service worker caches the HTML, CSS, JS and icons so
   the app continues to run without a network connection.
+- **Automatic JSON backups** – whenever data is saved, a JSON snapshot of all
+  stored information is downloaded so you can keep your own copy.
 
 ## Running locally
 
