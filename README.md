@@ -19,6 +19,7 @@ desktop devices.
   the app continues to run without a network connection.
 - **Automatic JSON backups** – whenever data is saved, a JSON snapshot of all
   stored information is downloaded so you can keep your own copy.
+- **Import backups** – restore medications and history by selecting a saved JSON file on the Setup Rx tab.
 
 ## Running locally
 
@@ -33,6 +34,9 @@ Then navigate to `http://localhost:8000`.
 
 On mobile devices you can choose "Add to Home Screen" to install the app like a
 native application.
+
+To restore data from a backup JSON file, open the **Setup Rx** tab in the app
+and choose the file under "Restore from Backup".
 
 ## License
 
