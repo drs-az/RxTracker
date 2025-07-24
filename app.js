@@ -16,6 +16,7 @@ const downloadHrBtn = document.getElementById('download-hr');
 const navButtons = document.querySelectorAll('#bottom-nav button');
 const medSubmitBtn = medForm.querySelector('button[type="submit"]');
 const editVitalsBtn = document.getElementById('edit-vitals');
+const importFileInput = document.getElementById('import-file');
 let editingMedId = null;
 
 // LocalStorage Helpers
@@ -54,6 +55,17 @@ function exportAllData() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+function importAllData(data) {
+  if (!data || typeof data !== 'object') return;
+  if (data.meds) localStorage.setItem('meds', JSON.stringify(data.meds));
+  if (data.medLogs) localStorage.setItem('medLogs', JSON.stringify(data.medLogs));
+  if (data.vitalsLogs) localStorage.setItem('vitalsLogs', JSON.stringify(data.vitalsLogs));
+  renderMeds();
+  renderLog();
+  renderVitals();
+  exportAllData();
 }
 
 // Utility to return today's date in the user's local timezone
@@ -355,6 +367,23 @@ downloadHrBtn.addEventListener('click', () => {
   a.href = url;
   a.download = 'heart_rate.png';
   a.click();
+});
+
+importFileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      importAllData(data);
+      alert('Data imported successfully.');
+    } catch (err) {
+      alert('Invalid backup file.');
+    }
+    importFileInput.value = '';
+  };
+  reader.readAsText(file);
 });
 
 // Initialize app
