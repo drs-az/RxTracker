@@ -20,11 +20,41 @@ let editingMedId = null;
 
 // LocalStorage Helpers
 function getMeds() { return JSON.parse(localStorage.getItem('meds') || '[]'); }
-function saveMeds(meds) { localStorage.setItem('meds', JSON.stringify(meds)); }
+function saveMeds(meds) {
+  localStorage.setItem('meds', JSON.stringify(meds));
+  exportAllData();
+}
 function getMedLogs() { return JSON.parse(localStorage.getItem('medLogs') || '{}'); }
-function saveMedLogs(logs) { localStorage.setItem('medLogs', JSON.stringify(logs)); }
+function saveMedLogs(logs) {
+  localStorage.setItem('medLogs', JSON.stringify(logs));
+  exportAllData();
+}
 function getVitalsLogs() { return JSON.parse(localStorage.getItem('vitalsLogs') || '{}'); }
-function saveVitalsLogs(logs) { localStorage.setItem('vitalsLogs', JSON.stringify(logs)); }
+function saveVitalsLogs(logs) {
+  localStorage.setItem('vitalsLogs', JSON.stringify(logs));
+  exportAllData();
+}
+
+function exportAllData() {
+  const data = {
+    meds: getMeds(),
+    medLogs: getMedLogs(),
+    vitalsLogs: getVitalsLogs()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  a.href = url;
+  a.download = `rx-tracker-backup-${ts}.json`;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 // Utility to return today's date in the user's local timezone
 function getTodayString() {
