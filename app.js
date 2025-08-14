@@ -13,6 +13,8 @@ const bpCanvas = document.getElementById('bp-chart');
 const hrCanvas = document.getElementById('hr-chart');
 const downloadBpBtn = document.getElementById('download-bp');
 const downloadHrBtn = document.getElementById('download-hr');
+const exportBpCsvBtn = document.getElementById('export-bp-csv');
+const exportHrCsvBtn = document.getElementById('export-hr-csv');
 const navButtons = document.querySelectorAll('#bottom-nav button');
 const medSubmitBtn = medForm.querySelector('button[type="submit"]');
 const editVitalsBtn = document.getElementById('edit-vitals');
@@ -367,6 +369,40 @@ downloadHrBtn.addEventListener('click', () => {
   a.href = url;
   a.download = 'heart_rate.png';
   a.click();
+});
+
+exportBpCsvBtn.addEventListener('click', () => {
+  const logs = getVitalsLogs();
+  const dates = Object.keys(logs).sort();
+  let csv = 'Date,Systolic,Diastolic\n';
+  dates.forEach(date => {
+    const v = logs[date];
+    csv += `${date},${v.systolic},${v.diastolic}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'blood_pressure.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+exportHrCsvBtn.addEventListener('click', () => {
+  const logs = getVitalsLogs();
+  const dates = Object.keys(logs).sort();
+  let csv = 'Date,Heart Rate\n';
+  dates.forEach(date => {
+    const v = logs[date];
+    csv += `${date},${v.heartRate}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'heart_rate.csv';
+  a.click();
+  URL.revokeObjectURL(url);
 });
 
 importFileInput.addEventListener('change', e => {
