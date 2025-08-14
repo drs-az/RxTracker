@@ -14,7 +14,8 @@ desktop devices.
 - **Vitals recording** – capture systolic and diastolic blood pressure and heart
   rate each day.
 - **History tracker** – view past medication logs and simple line charts for
-  blood pressure and heart rate.  Charts can be downloaded as PNG images.
+  blood pressure and heart rate. Charts can be downloaded as PNG images, and
+  readings can be exported as CSV files.
 - **Offline capable** – a service worker caches the HTML, CSS, JS and icons so
   the app continues to run without a network connection.
 - **Automatic JSON backups** – whenever data is saved, a JSON snapshot of all
